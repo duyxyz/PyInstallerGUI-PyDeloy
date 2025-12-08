@@ -10,14 +10,13 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QColor, QIcon
 
-# Import info module
+# Import guide module
 try:
-    from info import get_info_text, APP_NAME, APP_VERSION
+    from guide import get_guide_text, APP_NAME
 except ImportError:
     APP_NAME = "PyDeloy"
-    APP_VERSION = "1.0.0"
-    def get_info_text():
-        return "PyDeloy v1.0.0\n\nPython to EXE Converter"
+    def get_guide_text():
+        return "PyDeloy\n\nPython to EXE Converter"
 
 
 class ConvertThread(QThread):
@@ -170,7 +169,7 @@ class PyToExeConverter(QMainWindow):
     
     def init_ui(self):
         status = self.get_pyinstaller_status()
-        self.setWindowTitle(f'{APP_NAME} v{APP_VERSION} - {status}')
+        self.setWindowTitle(f'{APP_NAME} - {status}')
         self.setMinimumWidth(520)
         self.setMaximumWidth(400)
         self.resize(350, 350)
@@ -362,21 +361,21 @@ class PyToExeConverter(QMainWindow):
         log_tab.setLayout(log_layout)
         self.tabs.addTab(log_tab, "Log")
         
-        # Tab 5: Info
-        info_tab = QWidget()
-        info_layout = QVBoxLayout()
-        info_layout.setSpacing(10)
-        info_layout.setContentsMargins(10, 10, 10, 10)
+        # Tab 5: Guide
+        guide_tab = QWidget()
+        guide_layout = QVBoxLayout()
+        guide_layout.setSpacing(10)
+        guide_layout.setContentsMargins(10, 10, 10, 10)
         
-        self.info_display = QTextEdit()
-        self.info_display.setReadOnly(True)
-        info_font = QFont("Segoe UI", 9)
-        self.info_display.setFont(info_font)
-        self.info_display.setPlainText(get_info_text())
-        info_layout.addWidget(self.info_display)
+        self.guide_display = QTextEdit()
+        self.guide_display.setReadOnly(True)
+        guide_font = QFont("Segoe UI", 9)
+        self.guide_display.setFont(guide_font)
+        self.guide_display.setPlainText(get_guide_text())
+        guide_layout.addWidget(self.guide_display)
         
-        info_tab.setLayout(info_layout)
-        self.tabs.addTab(info_tab, "Info")
+        guide_tab.setLayout(guide_layout)
+        self.tabs.addTab(guide_tab, "Guide")
         
         main_layout.addWidget(self.tabs)
         
