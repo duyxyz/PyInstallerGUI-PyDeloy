@@ -10,15 +10,29 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QColor, QIcon
 
-# Import guide module
-try:
-    from guide import get_guide_text, APP_NAME
-except ImportError:
-    APP_NAME = "PyDeloy"
-    def get_guide_text():
-        return "PyDeloy\n\nPython to EXE Converter"
+
+# ==================== GUIDE MODULE ====================
+APP_NAME = "PyDeloy"
+
+def get_guide_text():
+    """Trả về hướng dẫn sử dụng"""
+    text = """
+1. Browse or drag & drop your .py file
+2. Check "Single file output" for one .exe (optional)
+3. Check "No console window" for GUI apps (optional)
+4. Select GUI Framework if your app uses one
+5. Enter output name for your .exe file
+6. Add icon file if needed (optional)
+7. Add hidden imports if PyInstaller misses modules
+8. Use "Auto detect" to exclude unused modules
+9. Click "Convert to EXE" and wait
+10. Click "Open Folder" to view your .exe
+11. Test your .exe on a system without Python
+"""
+    return text.strip()
 
 
+# ==================== MAIN APPLICATION ====================
 class ConvertThread(QThread):
     """Thread để chạy PyInstaller không block UI"""
     finished = pyqtSignal(bool, str)
@@ -519,15 +533,10 @@ class PyToExeConverter(QMainWindow):
         self.update_command()
     
     def get_gui_imports(self, framework):
+        """Trả về hidden imports bổ sung - --collect-all đã lo phần lớn"""
         imports_map = {
-            'Tkinter': ['tkinter', 'tkinter.ttk', '_tkinter'],
-            'CustomTkinter': ['customtkinter', 'tkinter', '_tkinter'],
-            'PyQt5': ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWidgets'],
-            'PyQt6': ['PyQt6', 'PyQt6.QtCore', 'PyQt6.QtGui', 'PyQt6.QtWidgets'],
-            'PySide2': ['PySide2', 'PySide2.QtCore', 'PySide2.QtGui', 'PySide2.QtWidgets'],
-            'PySide6': ['PySide6', 'PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets'],
-            'Kivy': ['kivy', 'kivy.core.window'],
-            'Pygame': ['pygame', 'pygame.mixer', 'pygame.font']
+            'Tkinter': ['tkinter', '_tkinter'],
+            'Pygame': ['pygame']
         }
         return imports_map.get(framework, [])
     
@@ -553,7 +562,23 @@ class PyToExeConverter(QMainWindow):
         cmd += f'--workpath="{os.path.join(file_dir, "build")}" '
         cmd += f'--specpath="{file_dir}" '
         
-        gui_imports = self.get_gui_imports(self.gui_combo.currentText())
+        # Tự động thêm --collect-all cho các GUI framework
+        gui_framework = self.gui_combo.currentText()
+        collect_all_frameworks = {
+            'CustomTkinter': 'customtkinter',
+            'PyQt5': 'PyQt5',
+            'PyQt6': 'PyQt6',
+            'PySide2': 'PySide2',
+            'PySide6': 'PySide6',
+            'Kivy': 'kivy'
+        }
+        
+        if gui_framework in collect_all_frameworks:
+            package_name = collect_all_frameworks[gui_framework]
+            cmd += f'--collect-all {package_name} '
+        
+        # Vẫn giữ hidden imports cho các trường hợp đặc biệt
+        gui_imports = self.get_gui_imports(gui_framework)
         hidden_imports = [h.strip() for h in self.hidden_input.text().split(',') if h.strip()]
         
         for imp in gui_imports + hidden_imports:
